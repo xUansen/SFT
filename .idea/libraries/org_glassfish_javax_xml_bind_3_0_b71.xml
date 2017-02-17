@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="org.glassfish:javax.xml.bind:3.0-b71" type="repository">
+    <properties maven-id="org.glassfish:javax.xml.bind:3.0-b71" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/glassfish/javax.xml.bind/3.0-b71/javax.xml.bind-3.0-b71.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
