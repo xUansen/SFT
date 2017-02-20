@@ -3,68 +3,55 @@ package com.company;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import javax.xml.bind.DatatypeConverter;
-import java.nio.charset.Charset;
+import java.util.Base64;
 
 /**
  * Created by xuanhe on 15/02/2017.
  */
-public class MyAES  {
+public class MyAES {
 
     private String key;
-    private String IV;
+    private byte[] IV;
+    private String algorithm;
 
-    public MyAES(String key, String IV) {
+    public MyAES(String key, byte[] IV) {
         this.key = key;
         this.IV = IV;
     }
 
-    public MyAES() {
+    public  MyAES() {}
 
+    public void setIV(byte[] IV) {
+        this.IV = IV;
     }
 
-    //    @Override
     public String encrypt(String plaintext) throws Exception {
 
-        try {
-            byte[] iv = this.IV.getBytes();
-            System.out.println(iv.length);
-            IvParameterSpec ivParams = new IvParameterSpec(iv);
-            SecretKeySpec secretKeySpec = new SecretKeySpec(this.key.getBytes("UTF-8"), "AES");
+        byte[] iv = this.IV;
 
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
-            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivParams);
+        IvParameterSpec ivParams = new IvParameterSpec(iv);
+        SecretKeySpec secretKeySpec = new SecretKeySpec(this.key.getBytes("UTF-8"), "AES");
 
-            byte[] encrypted = cipher.doFinal(plaintext.getBytes());
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivParams);
 
-            System.out.println("encrypted string: "
-                    + DatatypeConverter.printBase64Binary(encrypted));
+        byte[] encrypted = cipher.doFinal(plaintext.getBytes());
 
-            return DatatypeConverter.printBase64Binary(encrypted);
 
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return null;
+        return Base64.getEncoder().encodeToString(encrypted);
+
     }
 
-//    @Override
     public String decrypt(String ciphertext) throws Exception {
 
-        try {
-            IvParameterSpec iv = new IvParameterSpec(IV.getBytes("UTF-8"));
-            SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
+        IvParameterSpec iv = new IvParameterSpec(this.IV);
+        SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
 
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
-            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, iv);
-            byte[] original = cipher.doFinal(DatatypeConverter.parseBase64Binary(ciphertext));
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, iv);
+        byte[] original = cipher.doFinal(Base64.getDecoder().decode(ciphertext));
 
-            return new String(original);
+        return new String(original);
 
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
-        return null;
     }
 }

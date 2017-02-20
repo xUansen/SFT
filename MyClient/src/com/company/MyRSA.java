@@ -1,78 +1,113 @@
 package com.company;
 
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import javax.xml.bind.DatatypeConverter;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
+
 
 /**
  * Created by xuanhe on 16/02/2017.
+ * http://codeartisan.blogspot.com/2009/05/public-key-cryptography-in-java.html
  */
+
 public class MyRSA {
 
-    public MyRSA() {
+    private  String algorithm;
 
+
+    public MyRSA(String algorithm) {
+        this.algorithm = algorithm;
     }
 
-    public String computeMsgDigest(String plaintext) throws NoSuchAlgorithmException {
+
+    public  PrivateKey getPemPrivateKey(String filename, String algorithm)
+            throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+
+        byte[] content = Files.readAllBytes(Paths.get(filename));
+        PKCS8EncodedKeySpec spec =
+                new PKCS8EncodedKeySpec(content);
+
+        KeyFactory kf = KeyFactory.getInstance(algorithm);
+        return kf.generatePrivate(spec);
+    }
+
+    public PublicKey  getPemPublicKey(String filename, String algorithm)
+            throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+
+        byte[] content = Files.readAllBytes(Paths.get(filename));
+        X509EncodedKeySpec spec =
+                new X509EncodedKeySpec(content);
+
+        KeyFactory kf = KeyFactory.getInstance(algorithm);
+        return kf.generatePublic(spec);
+    }
+
+    public byte[] computeMsgDigest(String plaintext) throws NoSuchAlgorithmException {
 
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         md.update(plaintext.getBytes());
         byte[] byteData = md.digest();
-        System.out.println("encrypted string: "
-                + DatatypeConverter.printBase64Binary(byteData));
-        return DatatypeConverter.printBase64Binary(byteData);
+
+        return byteData;
     }
 
-    public void encrypt() throws NoSuchAlgorithmException, InvalidKeyException,
+    public String encrypt(String plaintext, PublicKey publicKey)
+            throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
+            BadPaddingException, IllegalBlockSizeException {
+
+        Cipher cipher = Cipher.getInstance(this.algorithm);
+        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        byte[] encrypted = cipher.doFinal(plaintext.getBytes());
+        System.out.println("RSA encrypt LENGHT " + encrypted.length);
+        return Base64.getEncoder().encodeToString(encrypted);
+
+    }
+
+    public String decrypt(String ciphertext, PrivateKey privateKey)
+            throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
+            BadPaddingException, IllegalBlockSizeException {
+        Cipher cipher = Cipher.getInstance(this.algorithm);
+        cipher.init(Cipher.DECRYPT_MODE, privateKey);
+        byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(ciphertext));
+
+        return new String(decrypted);
+    }
+
+    public String sign(String plaintext, PrivateKey privateKey) throws NoSuchAlgorithmException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException,
             NoSuchPaddingException, SignatureException, NoSuchProviderException {
 
-        KeyPair keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
-        PrivateKey privateKey = keyPair.getPrivate();
-        String plaintext = "This is the message being signed";
+        //Compute Message Digest
+        byte[] digest = computeMsgDigest(plaintext);
 
-        PublicKey publicKey = keyPair.getPublic();
-
-
-// Compute signature
-
-        Signature instance = Signature.getInstance("SHA256withRSA");
-        instance.initSign(privateKey);
-        instance.update((plaintext).getBytes());
-        byte[] signature = instance.sign();
-        Signature sig = Signature.getInstance("SHA256withRSA");
-
-        sig.initVerify(publicKey);
-        sig.update(plaintext.getBytes());
-        boolean verifies = sig.verify(signature);
-
-// Compute digest
-        MessageDigest sha1 = MessageDigest.getInstance("SHA-256");
-        byte[] digest = sha1.digest((plaintext).getBytes());
-
-// Encrypt digest
-        Cipher cipher = Cipher.getInstance("RSA");
+        Cipher cipher = Cipher.getInstance(this.algorithm);
         cipher.init(Cipher.ENCRYPT_MODE, privateKey);
-        byte[] cipherText = cipher.doFinal(digest);
-
-// Display results
-        System.out.println("Input data: " + plaintext);
-        System.out.println("Digest: " + DatatypeConverter.printBase64Binary(digest));
-        System.out.println("Cipher text: " + DatatypeConverter.printBase64Binary(cipherText));
-        System.out.println("Signature: " + DatatypeConverter.printBase64Binary(signature));
+        byte[] signature = cipher.doFinal(digest);
 
 
-
-        System.out.println("Verified Signature: " + verifies);
-
-        return;
+        return Base64.getEncoder().encodeToString(signature) ;
     }
 
-    public boolean verify(String signature) {
+    public boolean verify(String signature, String original_text, PublicKey publicKey)
+            throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
+            BadPaddingException, IllegalBlockSizeException {
 
-        return false;
+        Cipher cipher = Cipher.getInstance(this.algorithm);
+        cipher.init(Cipher.DECRYPT_MODE, publicKey);
+        byte[] computeDigest = cipher.doFinal(Base64.getDecoder().decode(signature));
+
+        byte[] digest = computeMsgDigest(original_text);
+
+        return MessageDigest.isEqual(computeDigest, digest);
     }
 }
