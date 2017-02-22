@@ -1,4 +1,4 @@
-package com.company;
+package app;
 
 
 import javax.crypto.BadPaddingException;
@@ -16,8 +16,7 @@ import java.util.Base64;
 
 
 /**
- * Created by xuanhe on 16/02/2017.
- * http://codeartisan.blogspot.com/2009/05/public-key-cryptography-in-java.html
+ * @author xuanhe
  */
 
 public class MyRSA {
@@ -29,37 +28,58 @@ public class MyRSA {
         this.algorithm = algorithm;
     }
 
+    /**
+     * Generate private key from .der file content based on algorithm
+     * 
+     * @param filename: private key .der file name
+     * @return PrivateKey: PKCS8 Private Key
+     * @throw: Exception
+     */
 
     public  PrivateKey getPemPrivateKey(String filename, String algorithm)
             throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 
         byte[] content = Files.readAllBytes(Paths.get(filename));
-        PKCS8EncodedKeySpec spec =
-                new PKCS8EncodedKeySpec(content);
 
+        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(content);
         KeyFactory kf = KeyFactory.getInstance(algorithm);
+
         return kf.generatePrivate(spec);
     }
 
+
+    /**
+     * Generate public key from .der file content based on algorithm
+     * 
+     * @param filename: public key .der file name
+     * @return Public key instance
+     * @throw: Exception
+     */
     public PublicKey  getPemPublicKey(String filename, String algorithm)
             throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 
         byte[] content = Files.readAllBytes(Paths.get(filename));
-        X509EncodedKeySpec spec =
-                new X509EncodedKeySpec(content);
 
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(content);
         KeyFactory kf = KeyFactory.getInstance(algorithm);
+
         return kf.generatePublic(spec);
     }
 
-    public byte[] computeMsgDigest(String plaintext) throws NoSuchAlgorithmException {
+    // Compute message digest routine, using SHA256
+
+    private byte[] computeMsgDigest(String plaintext) throws NoSuchAlgorithmException {
 
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         md.update(plaintext.getBytes());
+
         byte[] byteData = md.digest();
 
         return byteData;
     }
+
+
+    // Encrypt file using public key so that someone who has private key can decrypt
 
     public String encrypt(String plaintext, PublicKey publicKey)
             throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
@@ -68,20 +88,25 @@ public class MyRSA {
         Cipher cipher = Cipher.getInstance(this.algorithm);
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
         byte[] encrypted = cipher.doFinal(plaintext.getBytes());
-        System.out.println("RSA encrypt LENGHT " + encrypted.length);
+
         return Base64.getEncoder().encodeToString(encrypted);
 
     }
 
+    // Decrypt file using private key return decrypted text
+
     public String decrypt(String ciphertext, PrivateKey privateKey)
             throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException {
+
         Cipher cipher = Cipher.getInstance(this.algorithm);
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
         byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(ciphertext));
 
         return new String(decrypted);
     }
+
+    //Sign text using one's private key, following compute hash of text, encrypt hash using pub key routine.
 
     public String sign(String plaintext, PrivateKey privateKey) throws NoSuchAlgorithmException, InvalidKeyException,
             BadPaddingException, IllegalBlockSizeException,
@@ -94,9 +119,10 @@ public class MyRSA {
         cipher.init(Cipher.ENCRYPT_MODE, privateKey);
         byte[] signature = cipher.doFinal(digest);
 
-
         return Base64.getEncoder().encodeToString(signature) ;
     }
+
+
 
     public boolean verify(String signature, String original_text, PublicKey publicKey)
             throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
@@ -104,6 +130,8 @@ public class MyRSA {
 
         Cipher cipher = Cipher.getInstance(this.algorithm);
         cipher.init(Cipher.DECRYPT_MODE, publicKey);
+
+
         byte[] computeDigest = cipher.doFinal(Base64.getDecoder().decode(signature));
 
         byte[] digest = computeMsgDigest(original_text);

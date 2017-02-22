@@ -1,21 +1,19 @@
-package com.company;
+package app;
 
-import javax.crypto.*;
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.security.*;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
-import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Created by xuanhe on 15/02/2017.
+ * @author Xuan He
  */
 
 public class client {
@@ -42,7 +40,7 @@ public class client {
 
         Path currentRelativePath = Paths.get("");
         String curr_path = currentRelativePath.toAbsolutePath().toString();
-
+        System.out.println(curr_path);
         final String algorithm = "RSA";
         String client_priKey_filename;
         String server_pubKey_filename;
@@ -72,12 +70,11 @@ public class client {
         }
 
 
-
         // Read in the file to be encrypted
         String plaintextFileName = args[1];
 
         String fileString = new String();
-
+        plaintextFileName = curr_path + "/test_files/" + plaintextFileName;
         try {
             fileString = new String(Files.readAllBytes(Paths.get(plaintextFileName)), "UTF-8");
 
@@ -94,11 +91,12 @@ public class client {
             return;
         }
 
-        ServerSocket myListener;
+        Socket mySocket = null;
         try {
-            myListener = new ServerSocket(portNumber);
+            mySocket = new Socket(args[2], portNumber);
+
         } catch (IOException e) {
-            System.err.println("Error: Cannot open port" + usage);
+            System.err.println("Error: Cannot open port, Connection refused" + usage);
             return;
         }
 
@@ -113,10 +111,8 @@ public class client {
             client_prikey = myRSA.getPemPrivateKey(curr_path + "/client_keys/" + client_priKey_filename, algorithm);
             server_pubkey = myRSA.getPemPublicKey(curr_path + "/server_keys/" + server_pubKey_filename, algorithm);
         } catch (Exception e) {
-            e.printStackTrace();
             return;
         }
-
 
         // Compute hash of the file and sign it using client private key
         String signature = myRSA.sign(fileString, client_prikey);
@@ -133,35 +129,39 @@ public class client {
         Base64.Encoder myEncoder = Base64.getEncoder();
         Base64.Decoder myDecoder = Base64.getDecoder();
 
-        System.out.println("signature length:" + signature.length());
-        System.out.println(Base64.getDecoder().decode(signature).length);
-        System.out.println("signature " + signature);
+
+//        System.out.println(Base64.getDecoder().decode(signature).length);
+//        System.out.println("signature " + signature);
 
 
         String ivMsg = myEncoder.encodeToString(iv);
 
-        System.out.println("IV length" + ivMsg.length());
-        System.out.println("IV " + ivMsg);
-        System.out.println("Password length" + Base64.getDecoder().decode(encryptedPassword).length);
-        System.out.println("Password " + encryptedPassword);
+//        System.out.println("IV length" + ivMsg.length());
+//        System.out.println("IV " + ivMsg);
+//        System.out.println("Password length" + encryptedPassword.length());
+//        System.out.println("Password " + encryptedPassword);
+//        System.out.println("signature length " + signature.length());
+//        System.out.println("signature length:" + signature);
+//        System.out.println("File:" + encryptedFile);
 
-        try {
-            while (true) {
-                Socket socket = myListener.accept();
-                try {
-                    PrintWriter out =
-                            new PrintWriter(socket.getOutputStream(), true);
-                    out.println(ivMsg+ encryptedPassword + signature+  encryptedFile);
-                    break;
-                } catch (Exception e) {
-                    System.err.println("Connection cannot be established");
-                } finally {
-                    socket.close();
-                }
+//        String temp = ivMsg + encryptedPassword + signature + encryptedFile;
+//        Files.write(Paths.get("decryptedfile"),
+//                originalText.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
+
+        while (true) {
+            try {
+                PrintWriter out =
+                        new PrintWriter(mySocket.getOutputStream(), true);
+
+                out.println(ivMsg + encryptedPassword + signature + encryptedFile);
+                break;
+            } catch (Exception e) {
+                System.err.println("Connection cannot be established");
+            } finally {
+                mySocket.close();
             }
-        } finally {
-            myListener.close();
         }
+
     }
 
 
