@@ -6,7 +6,7 @@ However, there is no assumption that the server will only receive messages from 
 
 # Project Details
 The client and server have RSA keys (using 2048 bit modulus) that will be used in this process.  A command line argument given to the server will indicate if the file is replaced.
-
+After receiving the message from client, the server will write the message to *receivedMsg* the current directory . Depending on mode, server will either use the received file or use *fakefile* to perform decryption and verification.
 
 ## RSA Key Generation
 The 2048 bit RSA key pair are generated before running the client and server application, by issuing the following command.
@@ -43,7 +43,7 @@ javac app/client.java
 javac app/server.java
 ```
 
-- Open server app by running `bash server.sh`. The parameters are specified as follows:
+- Open server app by running `bash server.sh` (example input are provided). The parameters are specified as follows:
  * port number
  * mode: 'u' for untrusted mode, 't' for trusted mode
  * server private key .der type file: file name

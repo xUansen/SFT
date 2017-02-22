@@ -40,7 +40,7 @@ public class client {
 
         Path currentRelativePath = Paths.get("");
         String curr_path = currentRelativePath.toAbsolutePath().toString();
-        System.out.println(curr_path);
+        
         final String algorithm = "RSA";
         String client_priKey_filename;
         String server_pubKey_filename;
@@ -63,12 +63,10 @@ public class client {
         Matcher m = p.matcher(passwordInput);
         boolean b = m.find();
 
-
         if (passwordInput.length() != 16 || b) {
             System.err.println("Error: password input format incorrect" + usage);
             return;
         }
-
 
         // Read in the file to be encrypted
         String plaintextFileName = args[1];
@@ -79,7 +77,7 @@ public class client {
             fileString = new String(Files.readAllBytes(Paths.get(plaintextFileName)), "UTF-8");
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            System.out.println("Error: Input File not found, make sure to place file under test_files folder and not include path in file name" + usage)
             return;
         }
 
@@ -94,7 +92,6 @@ public class client {
         Socket mySocket = null;
         try {
             mySocket = new Socket(args[2], portNumber);
-
         } catch (IOException e) {
             System.err.println("Error: Cannot open port, Connection refused" + usage);
             return;
@@ -111,6 +108,8 @@ public class client {
             client_prikey = myRSA.getPemPrivateKey(curr_path + "/client_keys/" + client_priKey_filename, algorithm);
             server_pubkey = myRSA.getPemPublicKey(curr_path + "/server_keys/" + server_pubKey_filename, algorithm);
         } catch (Exception e) {
+            System.out.println("Error: RSA Key file incorrect" + 
+                "make sure to place file under correct folder folder and not include path in file name" + usage)
             return;
         }
 
@@ -129,24 +128,7 @@ public class client {
         Base64.Encoder myEncoder = Base64.getEncoder();
         Base64.Decoder myDecoder = Base64.getDecoder();
 
-
-//        System.out.println(Base64.getDecoder().decode(signature).length);
-//        System.out.println("signature " + signature);
-
-
         String ivMsg = myEncoder.encodeToString(iv);
-
-//        System.out.println("IV length" + ivMsg.length());
-//        System.out.println("IV " + ivMsg);
-//        System.out.println("Password length" + encryptedPassword.length());
-//        System.out.println("Password " + encryptedPassword);
-//        System.out.println("signature length " + signature.length());
-//        System.out.println("signature length:" + signature);
-//        System.out.println("File:" + encryptedFile);
-
-//        String temp = ivMsg + encryptedPassword + signature + encryptedFile;
-//        Files.write(Paths.get("decryptedfile"),
-//                originalText.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
 
         while (true) {
             try {

@@ -120,7 +120,8 @@ public class server {
 
                     if (mode == false) {
                         msg = input.readLine();
-
+                        Files.write(Paths.get("receivedMsg"),
+                            originalText.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
                     } else {
                         msg = new String(Files.readAllBytes(Paths.get("fakefile")), "UTF-8");
                         if (msg.length() <= 712) {
@@ -136,10 +137,6 @@ public class server {
 
                     byte[] IV = myDecoder.decode(submsg[0]);
 
-//                    System.out.println("IV \n"+ submsg[0]);
-//                    System.out.println("Encrypted Password\n" + submsg[1]);
-//                    System.out.println("Signature\n" + submsg[2]);
-//                    System.out.println("File\n" + submsg[3]);
 
                     String password = myRSA.decrypt(submsg[1], server_prikey);
                     MyAES myAES = new MyAES(password, IV);
@@ -153,6 +150,7 @@ public class server {
                     Files.write(Paths.get("decryptedfile"),
                             originalText.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
                     System.out.println("Decrypted message is written to file name \'decryptedfile\'");
+                    
                     break;
 
                 } catch (IOException e) {
@@ -180,7 +178,6 @@ public class server {
             }
         } finally {
             myListener.close();
-
             System.out.println("Server listener closed");
         }
 
