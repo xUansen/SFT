@@ -17,6 +17,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Base64;
+import java.nio.file.NoSuchFileException;
 
 /**
  * @author Xuan He
@@ -67,10 +68,13 @@ public class server {
                     client_pubKey_filename, algorithm);
             server_prikey = myRSA.getPemPrivateKey(curr_path + "/server_keys/" +
                     server_priKey_filename, algorithm);
-        } catch (Exception e) {
-            e.printStackTrace();
+        }  catch (NoSuchFileException e) {
+            System.err.println("Error: cannot find files" + usage);
             return;
-        }
+        }  catch (Exception e) {
+            System.out.println("Error: cannot process keys" + usage);
+            return;
+        } 
 
 
         try {
@@ -121,7 +125,7 @@ public class server {
                     if (mode == false) {
                         msg = input.readLine();
                         Files.write(Paths.get("receivedMsg"),
-                            originalText.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
+                            msg.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
                     } else {
                         msg = new String(Files.readAllBytes(Paths.get("fakefile")), "UTF-8");
                         if (msg.length() <= 712) {

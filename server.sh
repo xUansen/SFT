@@ -1,1 +1,1 @@
-java app.server 9090 u server_private_key.der client_public_key.der
+java app.server 9090 t server_private_key.der client_public_key.der 

@@ -3,6 +3,20 @@ This project is assignment from COMS4180 Network Security Spring 2017. In this p
 The client encrypts and sign a file, then send an encrypted key, the encrypted file and the signature to the server. The server decrypts the file, checks the signature and indicates whether the signature verification failed or passed. 
 However, there is no assumption that the server will only receive messages from the client. The server may have malware on it that may sometimes replaces the encrypted file with another file. 
 
+.
+├── app  
+|   └── source code for client and server
+├── client_keys
+|   └── RSA Key pair for client
+├── server_keys
+|   └── RSA Key pair for server
+├── test_files
+|   └── files that client uses to encrypt 
+├── client.sh
+├── server.sh
+├── README.md
+└── compileApp.sh
+
 
 # Project Details
 The client and server have RSA keys (using 2048 bit modulus) that will be used in this process.  A command line argument given to the server will indicate if the file is replaced.

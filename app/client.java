@@ -77,7 +77,7 @@ public class client {
             fileString = new String(Files.readAllBytes(Paths.get(plaintextFileName)), "UTF-8");
 
         } catch (FileNotFoundException e) {
-            System.out.println("Error: Input File not found, make sure to place file under test_files folder and not include path in file name" + usage)
+            System.out.println("Error: Input File not found, make sure to place file under test_files folder and not include path in file name" + usage);
             return;
         }
 
@@ -109,7 +109,7 @@ public class client {
             server_pubkey = myRSA.getPemPublicKey(curr_path + "/server_keys/" + server_pubKey_filename, algorithm);
         } catch (Exception e) {
             System.out.println("Error: RSA Key file incorrect" + 
-                "make sure to place file under correct folder folder and not include path in file name" + usage)
+                "make sure to place file under correct folder folder and not include path in file name" + usage);
             return;
         }
 
