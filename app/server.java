@@ -178,6 +178,7 @@ public class server {
                     }
 
                     System.out.println("Connection closed");
+                    break;
                 }
             }
         } finally {

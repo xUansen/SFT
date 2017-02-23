@@ -49,7 +49,7 @@ Before run the application, there are certain inputs which will be prepared by t
 
 - Compile server and client app in shell
 ```
-bash server.sh
+bash compileApp.sh
 ```
 or
 ```
@@ -70,3 +70,6 @@ javac app/server.java
  * port number
  * client private key .der type file: file name
  * server public key .der type file: file name
+
+
+- Successfully decrypted file will be written to 'decryptedfile'
